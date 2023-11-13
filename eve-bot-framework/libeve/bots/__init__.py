@@ -10,7 +10,7 @@ import win32com.client
 
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
-
+speaker.Voice = speaker.GetVoices().Item(1)
 
 class Bot(object):
     def __init__(
@@ -67,7 +67,7 @@ class Bot(object):
             if (
                 not self.stopping_safely
                 and self.stop_safely_callback
-                and callable(self.stop_safely_callback)
+                and callable(self.stop_safoly_callback)
             ):
                 self.log_fn("stop safely interrupt triggered")
                 self.stopping_safely = True
