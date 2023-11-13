@@ -313,7 +313,7 @@ class MiningBot(Bot):
     def ensure_inventory_is_open(self):
 
         inv_label = self.wait_for(
-            {"_setText": "Inventory"}, type="EveLabelSmall", until=5
+            {"_setText": "Inventory"}, type="Label", until=5
         )
 
         if not inv_label:
@@ -326,7 +326,7 @@ class MiningBot(Bot):
             self.click_node(
                 inv_btn,
                 expect=[{"_setText": "Inventory"}],
-                expect_args={"type": "EveLabelSmall"},
+                expect_args={"type": "Label"},
             )
 
     def ensure_mining_hold_is_open(self):
@@ -493,7 +493,7 @@ class MiningBot(Bot):
 
         self.wait_for_overview()
 
-        mining_tab = self.wait_for({"_setText": "Mining"}, type="LabelThemeColored")
+        mining_tab = self.wait_for({"_setText": "Mining"}, type="Label")
 
         self.click_node(mining_tab, times=2)
 

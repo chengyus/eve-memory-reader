@@ -5,7 +5,7 @@
 
 eve-bot-framework/asteroids.mined
 eve-bot-framework/local.db
-
+**/*.swp
 **/env*/
 **/*debug.json
 **/*.db

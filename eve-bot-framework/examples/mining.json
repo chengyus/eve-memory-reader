@@ -1,0 +1,26 @@
+{
+  "name": "EVE Online - Mining Bot",
+  "uses": "MiningBot",
+  "with_narration": true,
+  "focus": true,
+  "loop": true,
+  "start_from": "mine_asteroids",
+  "scanners": [
+    "EnemyScanner"
+  ],
+  "args": {
+    "deploy_drones_while_mining": true,
+    "station": "Lisudeh V - Moon 10 - Kaalakiota Corporation Factory",
+    "number_of_miners": 1,
+    "asteroids_of_interest": [
+        "Massive Scordite",
+        "Dense Veldspar"
+    ]
+  },
+  "steps": [
+    "mine_asteroids"
+  ],
+  "emergency_steps": [
+    "warp_to_station"
+  ]
+}
