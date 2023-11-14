@@ -185,7 +185,7 @@ class Bot(object):
         return node
 
     def undock(self):
-        undock_btn = self.wait_for({"_setText": "Undock"}, type="LabelThemeColored")
+        undock_btn = self.wait_for({"_setText": "Undock"}, type="EveLabelMedium")
         self.say("undocking")
         self.click_node(undock_btn)
         self.wait_for_overview()
@@ -274,7 +274,7 @@ class Bot(object):
 
             self.click_node(station)
 
-            dock_btn = self.wait_for({"_name": "selectedItemDock"}, type="Container")
+            dock_btn = self.wait_for({"_name": "selectedItemDock"}, type="SelectedItemButton")
 
             self.click_node(dock_btn)
 

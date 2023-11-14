@@ -4,7 +4,7 @@
   "with_narration": true,
   "focus": true,
   "loop": true,
-  "start_from": "find_asteroid",
+  "start_from": "undock",
   "scanners": [
     "EnemyScanner"
   ],
@@ -18,7 +18,7 @@
     ]
   },
   "steps": [
-    "find_asteroid",
+    "undock", 
     "mine_asteroids",
     "warp_to_station"
   ],
