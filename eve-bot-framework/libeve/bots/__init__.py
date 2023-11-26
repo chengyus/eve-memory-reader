@@ -67,7 +67,7 @@ class Bot(object):
             if (
                 not self.stopping_safely
                 and self.stop_safely_callback
-                and callable(self.stop_safoly_callback)
+                and callable(self.stop_safely_callback)
             ):
                 self.log_fn("stop safely interrupt triggered")
                 self.stopping_safely = True
@@ -218,7 +218,7 @@ class Bot(object):
         self.say("recalling drones")
 
         drones_in_space = self.wait_for(
-            {"_setText": "Drones in Local Space ("},
+            {"_setText": "Drones in Space ("},
             type="EveLabelMedium",
             contains=True,
         )
@@ -234,7 +234,7 @@ class Bot(object):
         time.sleep(2)
 
         if not self.wait_for(
-            {"_setText": "Drones in Local Space (0)"}, type="EveLabelMedium", until=5
+            {"_setText": "Drones in Space (0)"}, type="EveLabelMedium", until=5
         ):
             self.recall_drones()
 
@@ -253,18 +253,20 @@ class Bot(object):
             self.say("Finding station")
             time.sleep(3)
 
+
             station = self.wait_for(
                 {"_text": self.station}, type="OverviewLabel", until=10
             )
 
             if not station:
 
-                warpto_tab = self.wait_for(
-                    {"_setText": "WarpTo"}, type="LabelThemeColored"
-                )
+                general_tab = self.wait_for( {"_setText": "General"}, type=EveLabelMedium )
+                #warpto_tab = self.wait_for(
+                #    {"_setText": "WarpTo"}, type="LabelThemeColored"
+                #)
 
                 self.click_node(
-                    warpto_tab,
+                    general_tab,
                     times=2,
                     expect=[{"_text": self.station}],
                     expect_args={"type": "OverviewLabel"},

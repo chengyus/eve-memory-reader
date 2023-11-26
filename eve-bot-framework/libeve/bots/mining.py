@@ -8,7 +8,7 @@ import string
 import random
 import time
 import traceback
-
+import ipdb
 
 class MiningBot(Bot):
     def __init__(
@@ -25,6 +25,7 @@ class MiningBot(Bot):
         number_of_miners=1,
         shields=None,
         asteroids_of_interest=[],
+        asteroids_ratios=[],
         fleet_commander=None,
     ):
         super().__init__(
@@ -42,6 +43,7 @@ class MiningBot(Bot):
         self.number_of_miners = number_of_miners
         self.shields = shields
         self.asteroids_of_interest = asteroids_of_interest
+        self.asteroids_ratios = asteroids_ratios
         self.matched_asteroids = list()
         self.fleet_commander = fleet_commander
         self.trip_id = ""
@@ -275,12 +277,12 @@ class MiningBot(Bot):
                 type="OverviewLabel",
             )
             self.current_asteroid = asteroid_belts[0]
-            self.click_node(
-                self.current_asteroid,
-                times=2,
-                expect=[{"_text": " - Asteroid Belt "}],
-                expect_args={"contains": True, "type": "OverviewLabel"},
-            )
+            #self.click_node(
+            #    self.current_asteroid,
+            #    times=2,
+            #    expect=[{"_text": " - Asteroid Belt "}],
+            #    expect_args={"contains": True, "type": "OverviewLabel"},
+            #)
 
             asteroid_belt = None
             for belt in asteroid_belts:
@@ -380,35 +382,28 @@ class MiningBot(Bot):
         if not self.deploy_drones_while_mining:
             return
 
-        if not self.wait_for(
-            {"_setText": "Drones in Local Space (0)"}, type="EveLabelMedium", until=5
-        ):
-            return
-
         self.say("deploying drones")
 
-        drones = self.wait_for(
-            {"_setText": "Drones in Bay ("}, type="EveLabelMedium", contains=True
-        )
+        drones_node_text = self.wait_for( {"_setText": "Drones in Bay ("}, type="EveLabelMedium", contains=True, until=1)
+        _, drones_number_with_trailing_parent = drones_node_text.attrs["_setText"].split('(')
+        drones_number = int(drones_number_with_trailing_parent.split(')')[0])
+        if drones_number > 0:
+            self.click_node(drones_node_text, right_click=True)
 
-        self.click_node(drones, right_click=True)
+            launch_btn = self.wait_for( {"_setText": "Launch Drone"}, type="EveLabelMedium", contains=True, until=2)
 
-        launch_btn = self.wait_for(
-            {"_setText": "Launch Drones"}, type="EveLabelMedium", contains=True
-        )
+            self.click_node(launch_btn)
 
-        self.click_node(launch_btn)
-
-        time.sleep(2)
-
-        if not self.wait_for(
-            {"_setText": "Drones in Bay (0)"}, type="EveLabelMedium", until=5
-        ):
-            self.deploy_drones()
+    def warp_to_asteroid_belt_if_no_asteroid_of_interest(self):
+        asteroids = self.wait_for( {"_text": "Asteroid ("}, type="OverviewLabel", select_many=False, contains=True, until=1 )
+        if not asteroids:
+            self.warp_to_asteroid_belt()
 
     def find_asteroids_of_interest(self):
         for asteroid_type in self.asteroids_of_interest:
-            self.matched_asteroids.append( self.wait_for({"_text": asteroid_type}, type="OverviewLabel", select_many=True, contains=False, until=1) )
+            this_list = self.wait_for( {"_text": asteroid_type}, type="OverviewLabel", select_many=True, contains=False, until=5)
+            for this_asteroid in this_list:
+                self.matched_asteroids.append(this_asteroid)
         return
 
     def find_closest_asteroid(self):
@@ -475,7 +470,7 @@ class MiningBot(Bot):
 
     def check_for_locked_asteroid(self):
         return self.wait_for(
-            {"_name": "assigned"}, type="Container", until=10
+            {"_name": "assigned"}, type="Container", until=1
         )
 
 
@@ -487,86 +482,58 @@ class MiningBot(Bot):
 
         self.click_node(mining_tab, times=1)
 
+        self.warp_to_asteroid_belt_if_no_asteroid_of_interest()
+        self.current_asteroid = None
         self.say("finding asteroid")
 
         # acquire target
-        # approach the target
         # track the target
+        # approach the target
+        # lock when within range
         while not (target_locked := self.check_for_locked_asteroid()):
-
             # find the asteroid of interest and use the first one, self.current_asteroid holds it
             self.find_asteroids_of_interest()
-            self.current_asteroid = self.matched_asteroids[0]
-            # if it is, click it
-            self.click_node(self.current_asteroid)
-
-            # find lock target button
-            lock_target_btn = self.wait_for(
-                {"_name": "selectedItemLockTarget"}, type="SelectedItemButton", until=5
+            if not self.current_asteroid:
+                self.current_asteroid = self.matched_asteroids[0]
+                # if it is, click it
+                self.click_node(self.current_asteroid)
+            name = self.current_asteroid.attrs['_text']
+            selected_item_info = self.wait_for( { "_setText": f"Asteroid ({name})<br>" }, type="EveLabelMedium", contains=True )
+            _, dist_with_unit = selected_item_info.attrs['_setText'].split("<br>")
+            distance_str, unit = dist_with_unit.split(' ')
+            distance = int(distance_str.replace( ',', ''))
+            track_btn = self.wait_for(
+                {"_name": "selectedItemSetInterest"}, type="SelectedItemButton"
             )
+            if not track_btn:
+                target_locked = False
+            self.click_node(track_btn)
+            #ipdb.set_trace()
 
-            # if it's not there, find another asteroid
-            if not lock_target_btn:
-                continue
-
-            # if it is, click it
-            self.click_node(lock_target_btn)
-
-            # while we haven't locked target within 10 seconds
-            while not (target_locked := self.check_for_locked_asteroid):
-
+            if distance > 2000 and distance <= 9999 and unit == 'm':
+                stop_button = self.wait_for(type="StopButton", until=1)
+                self.click_node(stop_button)
+                # find lock target button
+                lock_target_btn = self.wait_for( {"_name": "selectedItemLockTarget"}, type="SelectedItemButton" )
+                if(lock_target_btn):
+                    self.click_node(lock_target_btn)
+                    self.say("Target locked")
+                    break
+            elif distance >= 10 and unit == "km":
                 # find the approach button
                 approach_btn = self.wait_for(
                     {"_name": "selectedItemApproach"}, type="SelectedItemButton"
                 )
-
-                # check if approach button is still there
-                if not approach_btn:
-                    break
-
-                # click it
                 self.click_node(approach_btn)
-
-                # wait a bit
-                time.sleep(5)
-
-                # look for target button
-                lock_target_btn = self.wait_for(
-                    {"_name": "selectedItemLockTarget"}, type="SelectedItemButton", until=5
-                )
-
-                # if it's not there, find another asteroid
-                if not lock_target_btn:
-                    break
-
-                self.click_node(lock_target_btn)
-
-            if not target_locked:
-                continue
-            self.say("Target locked")
-
-            approach_btn = self.wait_for(
-                {"_name": "selectedItemApproach"}, type="SelectedItemButton"
-            )
-
-            if not approach_btn:
-                target_locked = False
-                continue
-
-            self.click_node(approach_btn)
-
-            track_btn = self.wait_for(
-                {"_name": "selectedItemSetInterest"}, type="SelectedItemButton"
-            )
-
-            if not track_btn:
-                target_locked = False
-                continue
-
-            self.click_node(track_btn)
-
-            # asteroid is targeted, we can start mining
-            break
+            elif distance <= 2000 and unit == 'm':
+                stop_button = self.wait_for(type="StopButton", until=1)
+                self.click_node(stop_button)
+                lock_target_btn = self.wait_for( {"_name": "selectedItemLockTarget"}, type="SelectedItemButton", until=1 )
+                if(lock_target_btn):
+                    self.click_node(lock_target_btn)
+                    self.say("Target locked")
+                # asteroid is targeted, we can start mining
+                break
 
     def change_miner(self, slot: UITreeNode):
         # returns -1 if no more miners
@@ -652,31 +619,30 @@ class MiningBot(Bot):
 
         if not self.deploy_drones_while_mining:
             return
-
-        if not self.wait_for(
-            {"_setText": "Drones in Bay (0)"}, type="EveLabelMedium", until=5
-        ):
+        drones_node_text = self.wait_for( {"_setText": "Drones in Bay ("}, type="EveLabelMedium", contains=True, until=1)
+        _, drones_number_with_trailing_parent = drones_node_text.attrs["_setText"].split('(')
+        drones_number = int(drones_number_with_trailing_parent.split(')')[0])
+        if drones_number == 0:
             return
+
+        self.click_node(drones_node_text, right_click=True)
+        submenuitem = self.wait_for({"_setText": "Launch Drone ("}, contains=True)
+        self.click_node(submenuitem)
 
         self.say("setting drones to mine")
 
         drones_in_space = self.wait_for(
-            {"_setText": "Drones in Local Space ("},
+            {"_setText": "Drones in Space ("},
             type="EveLabelMedium",
             contains=True,
         )
 
         self.click_node(drones_in_space, right_click=True)
-
-        return_btn = self.wait_for(
+        mine_btn = self.wait_for(
             {"_setText": "Mine ("}, type="EveLabelMedium", contains=True, until=5
         )
 
-        if not return_btn:
-            self.click_node(drones_in_space)
-            return
-
-        self.click_node(return_btn)
+        self.click_node(mine_btn)
 
     def mine_asteroid(self):
         self.ensure_inventory_is_open()
@@ -755,6 +721,17 @@ class MiningBot(Bot):
             retries += 1
             time.sleep(2)
 
+    def handle_ratios(self, ratio):
+        ast1_inv_label_node = self.wait_for({"_setText": "<center>"+self.asteroids_of_interests[0]}, type="Label")
+        ast1_icon_node = self.tree.nodes[self.tree.nodes[ast1_inv_label_node.parent].children[0]]
+        self.click_node(ast1_icon_node)
+        cap_gauge = self.wait_for(type="InvContCapacityGauge")
+        cap_node_id = cap_gauge.children[0]
+        cap_node = self.tree.nodes[cap_node_id]
+        selected_inv_vol_str, ratio_str, _ = cap_str.split(" ")
+        print(selected_inv_vol_str)
+        self.asteroids_of_interests.pop()
+
     def cargo_is_full(self):
         self.say("checking cargo")
         self.ensure_mining_hold_is_open()
@@ -763,9 +740,16 @@ class MiningBot(Bot):
         cap_node = self.tree.nodes[cap_node_id]
         cap_str = cap_node.attrs.get("_setText", "0/0 m").strip()
         self.say(f"capacity at: {cap_str}", narrate=False)
-        ratio_str, _ = cap_str.split(" ")
+        if not cap_str.__contains__('('):
+            ratio_str, _ = cap_str.split(" ")
+                
+        else:
+            selected_inv_vol_str, ratio_str, _ = cap_str.split(" ")
         try:
             ratio = eval(ratio_str.replace(",", ""))
+            volume, max_volume = ratio_str.split('/')
+            if self.asteroids_ratios and ratio >= self.asteroids_ratios[0]:
+                self.handle_ratios(ratio)
             return ratio > 0.95
         except ZeroDivisionError:
             return False
