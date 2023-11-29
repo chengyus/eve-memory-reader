@@ -1,3 +1,14 @@
+# Changes on this fork
+
+* Mostly based on needs, reviewing from git log, I can list the following major changes:
+  - Changing the .yaml extension to .json because the content was in JSON format.
+  - Changing the SAPI Voice to female
+  - Changes for finding asteroids of interest (logic and process here changed quite a bit, I also debugged and used ipdb as an analogous way of Ruby's binding.pry; it helped a lot).
+  - Updated the mining bot by adding new arguments I needed, such as ratios for different asteroids and afterburner (but I think it needs more testing). And as for that shield, I currently don't mine in low or nullsec that much and I need to figure out that EnemyScanner.
+  - Also, needed to change that step naming in driver.py for use with ipdb. 
+
+---
+
 # eve-memory-reader
 
 This is mostly a passion project inspired by https://github.com/Arcitectus/Sanderling with the aim of being faster and more memory efficient.
