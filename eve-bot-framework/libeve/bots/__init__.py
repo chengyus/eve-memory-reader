@@ -260,7 +260,7 @@ class Bot(object):
 
             if not station:
 
-                general_tab = self.wait_for( {"_setText": "General"}, type=EveLabelMedium )
+                general_tab = self.wait_for( {"_setText": "General"}, type="EveLabelMedium" )
                 #warpto_tab = self.wait_for(
                 #    {"_setText": "WarpTo"}, type="LabelThemeColored"
                 #)
@@ -285,8 +285,8 @@ class Bot(object):
 
             break
 
-        self.wait_for({"_setText": "Undock"}, type="LabelThemeColored")
-        time.sleep(5)
+        self.wait_for({"_setText": self.station, "_name": "nearestLocationInfo"}, contains=True, type="EveLabelMedium")
+        #self.wait_for({"_setText": "Undock"}, type="LabelThemeColored")
 
     def fleetup(self):
         if not self.wait_for({"_name": "fleetwindow"}, type="FleetWindow", until=5):

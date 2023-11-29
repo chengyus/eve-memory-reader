@@ -8,6 +8,7 @@ from twilio.rest import Client
 from .bots.autopilot import AutoPilotBot
 from .bots.mining import MiningBot
 
+import ipdb
 
 account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
 auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
@@ -80,18 +81,18 @@ class BotDriver(object):
             return self.say("bot is not initialized!", narrate=False)
         try:
             while True:
-                for step in self.driver.get("steps", list()):
-                    if not self.started and self.start_from and self.start_from != step:
+                for this_step in self.driver.get("steps", list()):
+                    if not self.started and self.start_from and self.start_from != this_step:
                         continue
                     if self.focus_enabled:
                         self.bot.focus()
                     self.started = True
-                    fn = getattr(self.bot, step)
+                    fn = getattr(self.bot, this_step)
                     if not (fn and callable(fn)):
                         raise Exception(
-                            f"`{step}` is not a registered action in bot `{self.bot_name}`"
+                            f"`{this_step}` is not a registered action in bot `{self.bot_name}`"
                         )
-                    self.log_fn(f"== running step: {step}")
+                    self.log_fn(f"== running this_step: {this_step}")
                     fn()
                 if not self.loop:
                     break

@@ -10,12 +10,13 @@
   ],
   "args": {
     "deploy_drones_while_mining": true,
-    "station": "Todaki VI - Moon 1 - School of Applied Knowledge",
+    "station": "Isanamo VII - Moon 1 - Nurtura Warehouse",
     "number_of_miners": 2,
+    "shields": "ALT2",
     "afterburner": "ALT1",
     "asteroids_of_interest": [
-        "Dense Veldspar",
-	"Massive Scordite"
+        "Azure Plagioclase",
+	      "Solid Pyroxeres"
     ],
     "asteroids_ratios": [0.5, 0.5]
   },
