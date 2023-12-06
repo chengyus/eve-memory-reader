@@ -10,16 +10,21 @@
   ],
   "args": {
     "deploy_drones_while_mining": true,
-    "station": "Ziasad IX - Moon 3 - Genolution Biotech Production",
+    "station": "Tama VII - Moon 9 - Republic Security Services Testing Facilities",
     "number_of_miners": 2,
+    "afterburner": "ALT1",
+    "shields": "ALT2",
     "asteroids_of_interest": [
-      "Pristine Jaspet",
-"      Luminous Kernit"
-    ]
+      "Obsidian Ochre",
+      "Prismatic Gneiss"
+    ],
+    "asteroids_ratios": [0.5, 0.5]
   },
   "steps": [
     "mine_asteroids",
-    "warp_to_station"
+    "warp_to_station",
+    "unload_loot",
+    "undock"
   ],
   "emergency_steps": [
     "warp_to_station"

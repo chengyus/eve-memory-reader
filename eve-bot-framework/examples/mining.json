@@ -12,7 +12,7 @@
     "deploy_drones_while_mining": true,
     "station": "Todaki VI - Moon 1 - School of Applied Knowledge",
     "number_of_miners": 2,
-    "afterburner": "ALT1",
+    "afterburner": "ALT2",
     "asteroids_of_interest": [
         "Dense Veldspar",
 	"Massive Scordite"

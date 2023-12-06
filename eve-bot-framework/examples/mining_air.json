@@ -9,17 +9,22 @@
     "EnemyScanner"
   ],
   "args": {
-    "deploy_drones_while_mining": true,
-    "station": "Todaki VI - Moon 1 - School of Applied Knowledge",
-    "number_of_miners": 1,
+    "deploy_drones_while_mining": false,
+    "station": "Annancale IV - Moon 1 - Astral Mining Inc. Mining Outpost",
+    "number_of_miners": 2,
+    "afterburner": "ALT1",
     "asteroids_of_interest": [
-        "Banidine",
-	"Augumene"
-    ]
+	"Augumene",
+	"Mercium" 
+    ],
+    "asteroids_ratios": [0.75, 0.25]
   },
   "steps": [
+    "warp_to_site",
     "mine_asteroids",
-    "warp_to_station"
+    "warp_to_station",
+    "unload_loot",
+    "undock"
   ],
   "emergency_steps": [
     "warp_to_station"

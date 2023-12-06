@@ -13,7 +13,7 @@ eve-bot-framework/local.db
 eve-bot-application.spec
 dist
 build
-
+build.bat
 # User-specific files
 *.rsuser
 *.suo
