@@ -533,7 +533,7 @@ class MiningBot(Bot):
                     self.click_node(lock_target_btn)
                     self.say("Target locked")
                     self.click_node(stop_button)
-                    if self.afterburner_enabled: 
+                    if self.afterburner_enabled:
                         self.toggle_afterburner()
                     break
 
@@ -544,7 +544,7 @@ class MiningBot(Bot):
                     self.click_node(lock_target_btn)
                     self.say("Target locked")
                     self.click_node(stop_button)
-                    if self.afterburner_enabled: 
+                    if self.afterburner_enabled:
                         self.toggle_afterburner()
                     break
             elif distance >= 12 and distance <= 16 and unit == "km":
@@ -552,7 +552,7 @@ class MiningBot(Bot):
                     self.click_node(lock_target_btn)
                     self.say("Target locked")
                     self.click_node(stop_button)
-                    if self.afterburner_enabled: 
+                    if self.afterburner_enabled:
                         self.toggle_afterburner()
                 # find the approach button
                 approach_btn = self.wait_for(
@@ -634,16 +634,15 @@ class MiningBot(Bot):
 
     def ensure_miner_is_running(self, slot_key, number_of_miners_enabled):
         slot = self.wait_for({"_name": KEYMAP[slot_key]}, type="ShipSlot", until=1)
-        number_of_miners_checked = 0
-        while slot and number_of_miners_checked < number_of_miners_enabled:
+        if slot:
             status = self.check_if_miner_is_badly_damaged(slot)
-            for glow in self.tree.find_node(
-                {"_name": "glow"}, type="Sprite", select_many=True
-            ):
+            glow_nodes = self.tree.find_node( {"_name": "glow"}, type="Sprite", select_many=True)
+            if not glow_nodes:
+                self.click_node(slot)
+                return
+            for glow in glow_nodes:
                 if not self.tree.nodes[glow.parent].attrs.get("_name") == KEYMAP[slot_key]:
                     self.click_node(slot)
-            #self.change_miner(slot)
-            number_of_miners_checked += 1
 
     def ensure_drones_are_mining(self):
 
@@ -676,21 +675,11 @@ class MiningBot(Bot):
         number_of_miners_enabled = 0
 
         for slot_key in ["F1", "F2"][: self.number_of_miners]:
-
             self.say(f"toggling {slot_key}")
-
-            while True:
-
-                if not self.wait_for({"_name": "target"}, type="TargetInBar", until=10):
-                    break
-
-                number_of_miners_enabled += 1
-
-                if not self.ensure_miner_is_running(slot_key, number_of_miners_enabled):
-                    continue
-
-                # slot is firing successfully
+            if not self.wait_for({"_name": "target"}, type="TargetInBar", until=10):
                 break
+            self.ensure_miner_is_running(slot_key, number_of_miners_enabled)
+            number_of_miners_enabled += 1
 
         self.say("mining asteroid")
 
@@ -761,8 +750,8 @@ class MiningBot(Bot):
             retries += 1
             time.sleep(2)
 
-    def handle_ratios(self, ratio):
-        ast1_inv_label_node = self.wait_for({"_setText": "<center>"+self.asteroids_of_interest[0]}, type="Label")
+    def handle_ratios(self, ratio, match_asteroid=None):
+        ast1_inv_label_node = self.wait_for({"_setText": "<center>"+ match_asteroid}, type="Label")
         ast1_icon_node = self.tree.nodes[self.tree.nodes[ast1_inv_label_node.parent].children[0]]
         self.click_node(ast1_icon_node)
         cap_gauge = self.wait_for(type="InvContCapacityGauge")
@@ -791,8 +780,10 @@ class MiningBot(Bot):
             ratio = eval(ratio_str.replace(",", ""))
             print(ratio)
             volume, max_volume = ratio_str.split('/')
-            if self.asteroids_ratios and ratio >= self.asteroids_ratios[0]:
-                self.handle_ratios(ratio)
+            inv_asteroid_node = self.wait_for({"_name": "itemNameLabel"}, type="Label", until=1)
+            if self.asteroids_ratios and inv_asteroid_node:
+                _, match_asteroid = inv_asteroid_node.attrs["_setText"].split('>')
+                self.handle_ratios(ratio, match_asteroid)
             return ratio > 0.95
         except ZeroDivisionError:
             return False
